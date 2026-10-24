@@ -1,0 +1,22 @@
+# Alternativa ao PostgreSQL instalado na máquina, para quem usa Docker.
+# Credenciais apenas para desenvolvimento.
+services:
+  postgres:
+    image: postgres:18
+    container_name: clavus-postgres
+    environment:
+      POSTGRES_DB: clavus
+      POSTGRES_USER: clavus
+      POSTGRES_PASSWORD: clavus
+    ports:
+      - "5432:5432"
+    volumes:
+      - clavus-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clavus -d clavus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  clavus-postgres-data:
