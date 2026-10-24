@@ -1,5 +1,8 @@
+using Clavus.Api.Cors;
+using Clavus.Api.Errors;
 using Clavus.Api.HealthChecks;
 using Clavus.Api.Modules;
+using Clavus.Shared.Abstractions;
 using Clavus.Shared.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
@@ -14,15 +17,21 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+builder.Services.AddClavusErrorHandling();
+builder.Services.AddClavusCors(builder.Configuration);
 builder.Services.AddClavusDatabase(builder.Configuration);
 builder.Services.AddClavusHealthChecks();
 
 foreach (var module in ModuleCatalog.All)
 {
+    builder.Services.AddSingleton(module);
     module.RegisterServices(builder.Services, builder.Configuration);
 }
 
 var app = builder.Build();
+
+app.UseClavusErrorHandling();
+app.UseClavusCors();
 
 if (app.Environment.IsDevelopment())
 {
@@ -32,7 +41,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapClavusHealthChecks();
 
-foreach (var module in ModuleCatalog.All)
+// Endpoints vêm dos módulos registrados no container (ModuleCatalog; nos testes, também módulos de teste).
+foreach (var module in app.Services.GetServices<IModule>())
 {
     module.MapEndpoints(app);
 }

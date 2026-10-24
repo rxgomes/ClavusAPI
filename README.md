@@ -43,6 +43,44 @@ No Rider, use a run configuration **`Clavus.Api: http`**, que vem do `launchSett
 | `http://localhost:5080/health/live` | Processo no ar |
 | `http://localhost:5080/health/ready` | Pronto para atender (inclui conexão com o PostgreSQL) |
 
+## CORS
+
+O front chama a API direto do navegador, então a origem dele precisa estar liberada em `Cors:AllowedOrigins`. Em desenvolvimento, `appsettings.Development.json` já libera `http://localhost:5173`, a porta padrão do Vite. Para outra porta ou ambiente, ajuste a lista:
+
+```json
+{
+  "Cors": {
+    "AllowedOrigins": [ "http://localhost:5173", "https://app.exemplo.com.br" ]
+  }
+}
+```
+
+Sem a configuração, nenhuma origem é liberada. O curinga `*` não é aceito e impede a API de subir. Requisições com credenciais (cookies) ainda não são suportadas.
+
+## Respostas de erro
+
+Todo erro 4xx/5xx gerado pela API sai como `application/problem+json` (RFC 9457):
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+  "title": "Recurso não encontrado.",
+  "status": 404,
+  "traceId": "00-033e64997bacc736c0aef759a550c880-e029f68082a32d2f-00"
+}
+```
+
+- `title` vem em pt-BR. Para decidir o que fazer com o erro, use `type`/`status`, não o texto.
+- `traceId` contém o `TraceId` registrado nos logs da requisição, o que permite achar o erro nos logs.
+- Exceção não tratada gera `500`. Só em Development a mensagem da exceção vem em `detail`.
+- Erro de validação gera `400` com `errors`, um objeto que mapeia cada campo para a lista de mensagens:
+
+  ```json
+  { "title": "Um ou mais campos são inválidos.", "status": 400, "errors": { "Nome": ["The Nome field is required."] } }
+  ```
+
+Os health checks são a exceção: respondem em texto (`Healthy`/`Unhealthy`).
+
 ## Testes
 
 ```bash
@@ -59,7 +97,7 @@ $env:CLAVUS_TEST_CONNECTION_STRING = "Host=localhost;Port=5432;Database=postgres
 
 ```
 src/
-  Clavus.Api/                       # host: compõe os módulos, OpenAPI, health checks
+  Clavus.Api/                       # host: compõe os módulos, OpenAPI, health checks, CORS, erros
   Shared/
     Clavus.Shared.Abstractions/     # contratos públicos (IModule)
     Clavus.Shared.Infrastructure/   # base de persistência (ModuleDbContext, convenções de banco)
@@ -111,6 +149,7 @@ tests/
        public void RegisterServices(IServiceCollection services, IConfiguration configuration)
        {
            services.AddModuleDbContext<VendasDbContext>(VendasDbContext.SchemaName);
+           services.AddValidation();
        }
 
        public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -131,3 +170,15 @@ tests/
    ```
 
    O histórico de migrations do módulo fica em `vendas.__ef_migrations_history`.
+
+### Validação de entrada
+
+A validação usa DataAnnotations nos DTOs dos endpoints e roda antes do handler. Quando falha, a resposta é `400` no formato de erro descrito acima.
+
+```csharp
+public sealed record NovoPedido([property: Required] string? Cliente, [property: Range(1, 100)] int Quantidade);
+
+grupo.MapPost("/pedidos", (NovoPedido pedido) => ...);
+```
+
+> **Obrigatório:** chame `services.AddValidation()` no `RegisterServices` do módulo. A validação é gerada em tempo de compilação, por projeto. Sem essa chamada, os DTOs do módulo **não são validados**, e nenhum erro avisa disso.
