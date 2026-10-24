@@ -1,0 +1,70 @@
+schema: spec-driven
+
+context: |
+  Language: pt-BR
+  All artifacts must be written in pt-BR.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projeto: Clavus API
+  - Backend do sistema Clavus, desenvolvido do zero.
+  - Este repositório contém apenas a API. O front-end fica em um repositório
+    separado (..\UI), com Vue 3 + TypeScript + Vite + Pinia + Quasar, e
+    consome esta API via HTTP/JSON.
+
+  Stack
+  - .NET 10 (C#), ASP.NET Core Web API.
+  - PostgreSQL com Entity Framework Core (provider Npgsql).
+  - Arquitetura: monolito modular.
+
+  Monolito modular
+  - Cada módulo de negócio é um projeto próprio (ex.: Clavus.Modules.<Modulo>),
+    com suas camadas internas, entidades, regras e endpoints.
+  - Um único banco PostgreSQL para todo o sistema. Cada módulo usa seu
+    próprio schema e seu próprio DbContext, com migrations separadas.
+  - Um projeto host (Clavus.Api) apenas compõe os módulos: registra
+    serviços, endpoints, autenticação e middlewares.
+  - Código compartilhado (abstrações, utilitários) fica em projetos
+    Clavus.Shared.*, sem regra de negócio.
+  - Um módulo não acessa entidades, DbContext ou tabelas de outro módulo
+    diretamente; a integração passa por contratos públicos do módulo.
+  - Nomes no banco em snake_case minúsculo, consultáveis sem aspas.
+  - Datas em timestamp without time zone (ou date); nunca timestamptz.
+
+  Convenções
+  - Padrões de código (chaves, XML doc em interfaces, nomenclatura,
+    nome de migrations) definidos em CLAUDE.md, na raiz do repositório.
+  - Documentação e mensagens ao usuário em pt-BR.
+  - Contratos da API (DTOs) documentados via OpenAPI, pois o front depende deles.
+  - Mudanças que alteram contratos da API devem descrever o impacto no front.
+
+rules:
+  proposal:
+    - Indicar quais módulos são afetados pela mudança
+    - Indicar se há mudança de contrato da API (breaking ou não) e impacto no front (..\UI)
+    - Declarar explicitamente o que está fora do escopo
+  design:
+    - Descrever alterações de banco (schema do módulo, tabelas, migrations) usando nomes em snake_case e tipos de data sem timezone
+    - Justificar qualquer dependência nova entre módulos
+  tasks:
+    - Agrupar tarefas por módulo
+    - Incluir tarefas de migration e de testes quando aplicável
+    - Nomear migrations com o prefixo de data yyyyMMdd_
+
+operations:
+  apply:
+    guidance:
+      - Seguir os padrões de código de CLAUDE.md em todo código novo ou modificado
+      - Em interfaces novas, preencher <author>, <created> e <modified>; ao alterar uma assinatura existente, atualizar apenas <modified>
+      - Não reformatar código legado fora do escopo da mudança
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
