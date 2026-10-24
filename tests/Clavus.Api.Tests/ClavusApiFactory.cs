@@ -11,7 +11,7 @@ public sealed class ClavusApiFactory(string environment, string connectionString
     /// <summary>
     /// Connection string para uma porta sem servidor, para simular o banco inacessível.
     /// </summary>
-    public const string BancoInacessivel = "Host=localhost;Port=1;Database=clavus;Username=postgres;Password=ixact;Timeout=2";
+    public const string BancoInacessivel = "Host=localhost;Port=1;Database=clavus;Username=clavus;Password=clavus;Timeout=2";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

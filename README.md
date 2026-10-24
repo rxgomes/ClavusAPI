@@ -34,6 +34,8 @@ docker compose up -d
 dotnet run --project src/Clavus.Api
 ```
 
+No Rider, use a run configuration **`Clavus.Api: http`**, que vem do `launchSettings.json`. Uma configuração sem esse perfil sobe a API como Production: a documentação não é exposta e a connection string de desenvolvimento não é carregada. No console deve aparecer `Hosting environment: Development`.
+
 | Endpoint | Descrição |
 |---|---|
 | `http://localhost:5080/scalar/v1` | Documentação navegável (somente em Development) |
