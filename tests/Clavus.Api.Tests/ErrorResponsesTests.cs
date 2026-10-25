@@ -96,8 +96,8 @@ public sealed class ErrorResponsesTests(PostgresFixture postgres)
         Assert.Equal("Um ou mais campos são inválidos.", corpo.RootElement.GetProperty("title").GetString());
 
         var erros = corpo.RootElement.GetProperty("errors");
-        Assert.True(erros.GetProperty("Nome").GetArrayLength() > 0);
-        Assert.True(erros.GetProperty("Quantidade").GetArrayLength() > 0);
+        Assert.Equal(["O nome é obrigatório."], erros.GetProperty("Nome").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal(["A quantidade deve estar entre 1 e 10."], erros.GetProperty("Quantidade").EnumerateArray().Select(e => e.GetString()));
     }
 
     [Fact]

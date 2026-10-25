@@ -76,7 +76,7 @@ Todo erro 4xx/5xx gerado pela API sai como `application/problem+json` (RFC 9457)
 - Erro de validação gera `400` com `errors`, um objeto que mapeia cada campo para a lista de mensagens:
 
   ```json
-  { "title": "Um ou mais campos são inválidos.", "status": 400, "errors": { "Nome": ["The Nome field is required."] } }
+  { "title": "Um ou mais campos são inválidos.", "status": 400, "errors": { "Cliente": ["O cliente é obrigatório."] } }
   ```
 
 Os health checks são a exceção: respondem em texto (`Healthy`/`Unhealthy`).
@@ -176,9 +176,13 @@ tests/
 A validação usa DataAnnotations nos DTOs dos endpoints e roda antes do handler. Quando falha, a resposta é `400` no formato de erro descrito acima.
 
 ```csharp
-public sealed record NovoPedido([property: Required] string? Cliente, [property: Range(1, 100)] int Quantidade);
+public sealed record NovoPedido(
+    [property: Required(ErrorMessage = "O cliente é obrigatório.")] string? Cliente,
+    [property: Range(1, 100, ErrorMessage = "A quantidade deve estar entre {1} e {2}.")] int Quantidade);
 
 grupo.MapPost("/pedidos", (NovoPedido pedido) => ...);
 ```
+
+Sempre defina `ErrorMessage` em pt-BR, porque a mensagem padrão do DataAnnotations sai em inglês. Os marcadores `{0}` (nome do campo), `{1}` e `{2}` (limites) podem ser usados no texto.
 
 > **Obrigatório:** chame `services.AddValidation()` no `RegisterServices` do módulo. A validação é gerada em tempo de compilação, por projeto. Sem essa chamada, os DTOs do módulo **não são validados**, e nenhum erro avisa disso.

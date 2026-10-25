@@ -27,7 +27,9 @@ public static class EndpointsDeTeste
     }
 }
 
-public sealed record DadosDeTeste([property: Required] string? Nome, [property: Range(1, 10)] int Quantidade);
+public sealed record DadosDeTeste(
+    [property: Required(ErrorMessage = "O nome é obrigatório.")] string? Nome,
+    [property: Range(1, 10, ErrorMessage = "A quantidade deve estar entre {1} e {2}.")] int Quantidade);
 
 /// <summary>
 /// Módulo de teste que expõe <see cref="EndpointsDeTeste"/> pelo mesmo caminho dos módulos reais.

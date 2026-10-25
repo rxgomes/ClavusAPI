@@ -40,6 +40,15 @@ Monolito modular em .NET 10 (C#) com PostgreSQL + EF Core. Visão geral da arqui
 - Evitar abreviações não óbvias.
 - O nome da migration deve iniciar com o prefixo da data atual no seguinte formato `yyyyMMdd_`.
 
+**Validação de entrada**
+- Todo atributo de validação (`[Required]`, `[Range]`, `[StringLength]` etc.) em DTO de endpoint deve ter `ErrorMessage` em pt-BR. A mensagem padrão do DataAnnotations sai em inglês e chega ao usuário no campo `errors` da resposta 400.
+
+```csharp
+public sealed record NovoPedido(
+    [property: Required(ErrorMessage = "O cliente é obrigatório.")] string? Cliente,
+    [property: Range(1, 100, ErrorMessage = "A quantidade deve estar entre {1} e {2}.")] int Quantidade);
+```
+
 ## Banco de dados (PostgreSQL)
 
 **Nomes sem aspas**
