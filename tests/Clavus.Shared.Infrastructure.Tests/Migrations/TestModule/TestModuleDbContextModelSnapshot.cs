@@ -49,6 +49,50 @@ namespace Clavus.Shared.Infrastructure.Tests.Migrations.TestModule
 
                     b.ToTable("pedido_item", "teste_convencoes");
                 });
+
+            modelBuilder.Entity("Clavus.Shared.Infrastructure.Tests.Convencoes.ProdutoTeste", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateIn")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("create_in")
+                        .HasDefaultValueSql("localtimestamp");
+
+                    b.Property<Guid>("Identifier")
+                        .HasColumnType("uuid")
+                        .HasColumnName("identifier")
+                        .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nome");
+
+                    b.Property<DateTime>("UpdateIn")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("update_in")
+                        .HasDefaultValueSql("localtimestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_produto_teste");
+
+                    b.HasIndex("Identifier")
+                        .IsUnique()
+                        .HasDatabaseName("ix_produto_teste_identifier");
+
+                    b.ToTable("produto_teste", "teste_convencoes");
+                });
 #pragma warning restore 612, 618
         }
     }

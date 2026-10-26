@@ -7,7 +7,7 @@ Os padrões de código estão em [`CLAUDE.md`](CLAUDE.md) e as regras de arquite
 ## Pré-requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (versão fixada em `global.json`)
-- PostgreSQL 16 ou superior, instalado na máquina **ou** via Docker
+- PostgreSQL 18 ou superior (o default de `identifier` usa `uuidv7()`), instalado na máquina **ou** via Docker
 - Ferramenta do EF Core: `dotnet tool install --global dotnet-ef`
 
 ## Banco de dados
@@ -170,6 +170,31 @@ tests/
    ```
 
    O histórico de migrations do módulo fica em `vendas.__ef_migrations_history`.
+
+### Entidades
+
+Toda classe que representa uma tabela herda de `Entity` (`Clavus.Shared.Abstractions.Domain`):
+
+```csharp
+public sealed class Pedido : Entity
+{
+    public string Cliente { get; set; } = string.Empty;
+}
+```
+
+A tabela ganha as colunas abaixo sem nenhuma configuração no módulo:
+
+| Propriedade | Coluna | Tipo | Comportamento |
+|---|---|---|---|
+| `Id` | `id` | `bigint` identity | chave primária gerada pelo banco |
+| `Identifier` | `identifier` | `uuid` | UUID v7 gerado ao criar o objeto, índice único; default `uuidv7()` |
+| `CreateIn` | `create_in` | `timestamp without time zone` | hora local da inclusão, nunca muda; default `localtimestamp` |
+| `UpdateIn` | `update_in` | `timestamp without time zone` | hora local da última alteração; default `localtimestamp` |
+| `IsActive` | `is_active` | `boolean` | default `true` |
+
+`CreateIn` e `UpdateIn` são preenchidos no `SaveChanges`: na inclusão os dois recebem a mesma hora, e cada alteração atualiza só `UpdateIn`. Os defaults do banco valem para inclusões feitas por SQL.
+
+> `ExecuteUpdate`/`ExecuteDelete` não passam pelo `SaveChanges`, então não atualizam `UpdateIn`. Defina o campo na própria expressão: `.ExecuteUpdateAsync(s => s.SetProperty(p => p.IsActive, false).SetProperty(p => p.UpdateIn, DateTime.Now))`.
 
 ### Validação de entrada
 

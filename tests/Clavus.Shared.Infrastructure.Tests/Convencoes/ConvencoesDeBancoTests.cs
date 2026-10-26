@@ -10,6 +10,7 @@ namespace Clavus.Shared.Infrastructure.Tests.Convencoes;
 /// <summary>
 /// Cenários da capability <c>database-conventions</c>.
 /// </summary>
+[Collection(BancoDeTesteCollection.Nome)]
 public sealed class ConvencoesDeBancoTests(PostgresFixture postgres) : IAsyncLifetime
 {
     private const string TimestampSemTimezone = "timestamp without time zone";

@@ -26,6 +26,7 @@ public sealed class TestModuleDbContext(DbContextOptions<TestModuleDbContext> op
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<PedidoItem>();
+        modelBuilder.Entity<ProdutoTeste>();
     }
 }
 
