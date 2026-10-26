@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Clavus.Shared.Abstractions\Clavus.Shared.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Shared\Clavus.Shared.Infrastructure\Clavus.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

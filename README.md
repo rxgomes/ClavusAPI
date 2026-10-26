@@ -28,6 +28,12 @@ O script cria o usuário `clavus` (com permissão `CREATEDB`, usada pelos testes
 docker compose up -d
 ```
 
+**Migrations.** A API não aplica migrations ao subir. Aplique as de cada módulo:
+
+```bash
+dotnet ef database update --project src/Modules/Clavus.Modules.Partners --startup-project src/Clavus.Api --context PartnersDbContext
+```
+
 ## Executar a API
 
 ```bash
@@ -99,9 +105,10 @@ $env:CLAVUS_TEST_CONNECTION_STRING = "Host=localhost;Port=5432;Database=postgres
 src/
   Clavus.Api/                       # host: compõe os módulos, OpenAPI, health checks, CORS, erros
   Shared/
-    Clavus.Shared.Abstractions/     # contratos públicos (IModule)
+    Clavus.Shared.Abstractions/     # contratos públicos (IModule, Entity, DomainException)
     Clavus.Shared.Infrastructure/   # base de persistência (ModuleDbContext, convenções de banco)
   Modules/                          # um projeto por módulo de negócio
+    Clavus.Modules.Partners/        # parceiros: clientes e fornecedores (schema partners)
 tests/
 ```
 
@@ -195,6 +202,17 @@ A tabela ganha as colunas abaixo sem nenhuma configuração no módulo:
 `CreateIn` e `UpdateIn` são preenchidos no `SaveChanges`: na inclusão os dois recebem a mesma hora, e cada alteração atualiza só `UpdateIn`. Os defaults do banco valem para inclusões feitas por SQL.
 
 > `ExecuteUpdate`/`ExecuteDelete` não passam pelo `SaveChanges`, então não atualizam `UpdateIn`. Defina o campo na própria expressão: `.ExecuteUpdateAsync(s => s.SetProperty(p => p.IsActive, false).SetProperty(p => p.UpdateIn, DateTime.Now))`.
+
+### Regras de domínio
+
+As validações ficam nas próprias entidades e objetos de valor (construtores e métodos), e não nos endpoints. Um dado inválido lança `DomainException` (`Clavus.Shared.Abstractions.Domain`) com mensagem em pt-BR para o usuário:
+
+```csharp
+var documento = new Document("12.ABC.345/01DE-35"); // guardado como "12ABC34501DE35"
+new Document("123");                                 // DomainException: "Documento inválido: ..."
+```
+
+> Por enquanto a `DomainException` não é convertida em `400`: se escapar de um endpoint, vira `500`. O mapeamento entra com os primeiros endpoints de negócio.
 
 ### Validação de entrada
 

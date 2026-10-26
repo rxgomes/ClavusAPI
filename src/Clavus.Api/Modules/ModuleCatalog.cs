@@ -1,3 +1,4 @@
+using Clavus.Modules.Partners;
 using Clavus.Shared.Abstractions;
 
 namespace Clavus.Api.Modules;
@@ -10,5 +11,6 @@ internal static class ModuleCatalog
 {
     public static readonly IReadOnlyList<IModule> All =
     [
+        new PartnersModule(),
     ];
 }

@@ -2,12 +2,16 @@
   <Folder Name="/src/">
     <Project Path="src/Clavus.Api/Clavus.Api.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Clavus.Modules.Partners/Clavus.Modules.Partners.csproj" />
+  </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/Clavus.Shared.Abstractions/Clavus.Shared.Abstractions.csproj" />
     <Project Path="src/Shared/Clavus.Shared.Infrastructure/Clavus.Shared.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Clavus.Api.Tests/Clavus.Api.Tests.csproj" />
+    <Project Path="tests/Clavus.Modules.Partners.Tests/Clavus.Modules.Partners.Tests.csproj" />
     <Project Path="tests/Clavus.Shared.Infrastructure.Tests/Clavus.Shared.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

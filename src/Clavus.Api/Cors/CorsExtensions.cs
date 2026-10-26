@@ -8,7 +8,7 @@ internal static class CorsExtensions
 {
     public const string AllowedOriginsKey = "Cors:AllowedOrigins";
 
-    private static readonly TimeSpan PreflightMaxAge = TimeSpan.FromMinutes(10);
+    private readonly static TimeSpan PreflightMaxAge = TimeSpan.FromMinutes(10);
 
     public static IServiceCollection AddClavusCors(this IServiceCollection services, IConfiguration configuration)
     {
