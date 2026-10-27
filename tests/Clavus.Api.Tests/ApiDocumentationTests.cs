@@ -41,6 +41,26 @@ public sealed class ApiDocumentationTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task DocumentoContemEndpointsDeParceirosAsync()
+    {
+        await using var factory = new ClavusApiFactory(Environments.Development, postgres.ConnectionString);
+        using var cliente = factory.CreateClient();
+
+        using var resposta = await cliente.GetAsync("/openapi/v1.json", TestContext.Current.CancellationToken);
+        using var documento = await LerJsonAsync(resposta);
+
+        var caminhos = documento.RootElement.GetProperty("paths");
+        foreach (var caminho in new[] { "/partners", "/partners/details", "/partners/{identifier}" })
+        {
+            var operacoes = caminhos.GetProperty(caminho).EnumerateObject().ToList();
+            Assert.NotEmpty(operacoes);
+            Assert.All(operacoes, operacao => Assert.Contains(
+                "Parceiros",
+                operacao.Value.GetProperty("tags").EnumerateArray().Select(tag => tag.GetString())));
+        }
+    }
+
+    [Fact]
     public async Task InterfaceDeDocumentacaoDisponivelEmDevelopmentAsync()
     {
         await using var factory = new ClavusApiFactory(Environments.Development, postgres.ConnectionString);

@@ -1,3 +1,5 @@
+using Clavus.Modules.Partners.Application;
+using Clavus.Modules.Partners.Endpoints;
 using Clavus.Modules.Partners.Persistence;
 using Clavus.Shared.Abstractions;
 using Clavus.Shared.Infrastructure.Persistence;
@@ -19,10 +21,15 @@ public sealed class PartnersModule : IModule
     public void RegisterServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddModuleDbContext<PartnersDbContext>(PartnersDbContext.SchemaName);
+        services.AddScoped<IPartnerService, PartnerService>();
+
+        // Validação dos DTOs desta compilação (gerada por compilação).
+        services.AddValidation();
     }
 
     /// <inheritdoc />
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapPartnerEndpoints();
     }
 }

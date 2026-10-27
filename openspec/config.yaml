@@ -23,6 +23,10 @@ context: |
     próprio schema e seu próprio DbContext, com migrations separadas.
   - Um projeto host (Clavus.Api) apenas compõe os módulos: registra
     serviços, endpoints, autenticação e middlewares.
+  - Endpoints em Minimal API. Cada módulo declara seus endpoints em
+    classes próprias na pasta Endpoints/, uma por recurso (ex.:
+    PartnerEndpoints, grupo /partners); IModule.MapEndpoints só delega
+    e o host não declara endpoints de negócio. DTOs ficam em Contracts/.
   - Código compartilhado (abstrações, utilitários) fica em projetos
     Clavus.Shared.*, sem regra de negócio.
   - Um módulo não acessa entidades, DbContext ou tabelas de outro módulo

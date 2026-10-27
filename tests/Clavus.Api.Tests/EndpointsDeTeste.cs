@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Clavus.Shared.Abstractions;
+using Clavus.Shared.Abstractions.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -16,6 +17,8 @@ public static class EndpointsDeTeste
 {
     public const string MensagemDaExcecao = "detalhe interno";
 
+    public const string MensagemDaRegra = "CPF inválido.";
+
     public static void Mapear(IEndpointRouteBuilder endpoints)
     {
         var grupo = endpoints.MapGroup("/__testes");
@@ -24,6 +27,8 @@ public static class EndpointsDeTeste
         grupo.MapGet("/excecao", string () => throw new InvalidOperationException(MensagemDaExcecao));
         grupo.MapGet("/somente-get", () => Results.Ok());
         grupo.MapPost("/validacao", (DadosDeTeste dados) => Results.Ok(dados));
+        grupo.MapGet("/regra", string () => throw new DomainException(MensagemDaRegra));
+        grupo.MapGet("/conflito", () => TypedResults.Problem(statusCode: StatusCodes.Status409Conflict));
     }
 }
 

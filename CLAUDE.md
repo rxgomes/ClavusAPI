@@ -49,6 +49,14 @@ public sealed record NovoPedido(
     [property: Range(1, 100, ErrorMessage = "A quantidade deve estar entre {1} e {2}.")] int Quantidade);
 ```
 
+## Endpoints
+
+- Endpoints em Minimal API (não usar controllers MVC). Cada módulo declara seus endpoints em classes estáticas próprias na pasta `Endpoints/` do módulo, uma por recurso (ex.: `PartnerEndpoints`), com um método de extensão `Map<Recurso>Endpoints(this IEndpointRouteBuilder)`.
+- Cada classe cria o grupo do recurso com `MapGroup("/<recurso>")` e `WithTags("<Nome em pt-BR>")`, e cada endpoint declara `WithName`, `WithSummary` em pt-BR e os metadados de resposta (`Produces`, `ProducesProblem`, `ProducesValidationProblem`) para o OpenAPI.
+- `IModule.MapEndpoints` só delega para essas classes. O host (`Clavus.Api`) não declara endpoints de negócio.
+- DTOs de requisição e resposta ficam em `Contracts/` do módulo. Cada módulo chama `services.AddValidation()` no seu `RegisterServices`, pois a validação é gerada por compilação.
+- Regras de negócio violadas lançam `DomainException` (vira `400` com a mensagem no `detail`). "Não encontrado" e "conflito" são resultados do serviço, traduzidos pelo endpoint em `404`/`409`, não exceções.
+
 ## Banco de dados (PostgreSQL)
 
 **Nomes sem aspas**

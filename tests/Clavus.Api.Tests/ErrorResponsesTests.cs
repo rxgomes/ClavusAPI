@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Clavus.Shared.Abstractions.Domain;
 using Clavus.Tests.Shared;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,8 @@ public sealed class ErrorResponsesTests(PostgresFixture postgres)
     [InlineData("GET", "/rota-que-nao-existe", HttpStatusCode.NotFound)]
     [InlineData("DELETE", "/__testes/somente-get", HttpStatusCode.MethodNotAllowed)]
     [InlineData("GET", "/__testes/excecao", HttpStatusCode.InternalServerError)]
+    [InlineData("GET", "/__testes/regra", HttpStatusCode.BadRequest)]
+    [InlineData("GET", "/__testes/conflito", HttpStatusCode.Conflict)]
     public async Task ErroTemCamposObrigatoriosEStatusIgualAoHttpAsync(string metodo, string caminho, HttpStatusCode esperado)
     {
         var (resposta, corpo) = await EnviarAsync(Environments.Production, new HttpRequestMessage(new HttpMethod(metodo), caminho));
@@ -34,6 +37,8 @@ public sealed class ErrorResponsesTests(PostgresFixture postgres)
     [InlineData("GET", "/rota-que-nao-existe", "Recurso não encontrado.")]
     [InlineData("DELETE", "/__testes/somente-get", "Método não permitido.")]
     [InlineData("GET", "/__testes/excecao", "Ocorreu um erro inesperado.")]
+    [InlineData("GET", "/__testes/regra", "Requisição inválida.")]
+    [InlineData("GET", "/__testes/conflito", "Conflito.")]
     public async Task TituloEmPortuguesAsync(string metodo, string caminho, string titulo)
     {
         var (_, corpo) = await EnviarAsync(Environments.Production, new HttpRequestMessage(new HttpMethod(metodo), caminho));
@@ -62,6 +67,44 @@ public sealed class ErrorResponsesTests(PostgresFixture postgres)
         Assert.Equal(HttpStatusCode.InternalServerError, resposta.StatusCode);
         Assert.Equal(ProblemJson, resposta.Content.Headers.ContentType?.MediaType);
         Assert.Contains(EndpointsDeTeste.MensagemDaExcecao, corpo.RootElement.GetProperty("detail").GetString());
+    }
+
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task RegraVioladaRetorna400ComMensagemNoDetailAsync(string ambiente)
+    {
+        var (resposta, corpo) = await EnviarAsync(ambiente, new HttpRequestMessage(HttpMethod.Get, "/__testes/regra"));
+        var texto = corpo.RootElement.GetRawText();
+
+        Assert.Equal(HttpStatusCode.BadRequest, resposta.StatusCode);
+        Assert.Equal(ProblemJson, resposta.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("Requisição inválida.", corpo.RootElement.GetProperty("title").GetString());
+        Assert.Equal(EndpointsDeTeste.MensagemDaRegra, corpo.RootElement.GetProperty("detail").GetString());
+        Assert.DoesNotContain(nameof(DomainException), texto);
+        Assert.DoesNotContain("   at ", texto);
+        Assert.DoesNotContain("   em ", texto);
+    }
+
+    [Fact]
+    public async Task RegraVioladaNaoERegistradaComoErroAsync()
+    {
+        var logs = new ColetorDeLogs();
+
+        await EnviarAsync(Environments.Production, new HttpRequestMessage(HttpMethod.Get, "/__testes/regra"), logs);
+
+        Assert.DoesNotContain(logs.Registros, r => r.Nivel >= LogLevel.Error);
+    }
+
+    [Fact]
+    public async Task ConflitoTemTituloEmPortuguesAsync()
+    {
+        var (resposta, corpo) = await EnviarAsync(Environments.Production, new HttpRequestMessage(HttpMethod.Get, "/__testes/conflito"));
+
+        Assert.Equal(HttpStatusCode.Conflict, resposta.StatusCode);
+        Assert.Equal(ProblemJson, resposta.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(409, corpo.RootElement.GetProperty("status").GetInt32());
+        Assert.Equal("Conflito.", corpo.RootElement.GetProperty("title").GetString());
     }
 
     [Theory]

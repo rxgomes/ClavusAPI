@@ -12,6 +12,7 @@ internal static class ErrorHandlingExtensions
         [StatusCodes.Status400BadRequest] = "Requisição inválida.",
         [StatusCodes.Status404NotFound] = "Recurso não encontrado.",
         [StatusCodes.Status405MethodNotAllowed] = "Método não permitido.",
+        [StatusCodes.Status409Conflict] = "Conflito.",
         [StatusCodes.Status500InternalServerError] = "Ocorreu um erro inesperado.",
     };
 
@@ -19,6 +20,9 @@ internal static class ErrorHandlingExtensions
     {
         services.AddProblemDetails(options => options.CustomizeProblemDetails = Personalizar);
         services.AddValidation();
+
+        // DomainException vira 400 com a mensagem da regra; as demais seguem para o 500 padrão.
+        services.AddExceptionHandler<DomainExceptionHandler>();
 
         // Erros de binding (JSON malformado etc.) viram 400 sem corpo em todos os ambientes;
         // o UseStatusCodePages converte em Problem Details.
